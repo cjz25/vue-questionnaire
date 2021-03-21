@@ -152,13 +152,19 @@ export default defineComponent({
       }
     }
 
-    watch(() => props.data.question_type, (newVal) => {
-      const option = questionTypeOptions.find(x => x.value === newVal);
-      if (option) {
-        selectedQuestionType.value = option;
-        selectedComponentName.value = option.component;
+    watch(
+      () => props.data.question_type,
+      (newVal) => {
+        const option = questionTypeOptions.find(x => x.value === newVal);
+        if (option) {
+          selectedQuestionType.value = option;
+          selectedComponentName.value = option.component;
+        }
+      },
+      {
+        immediate: true
       }
-    });
+    );
 
     watch(() => props.data.choices, (newVal) => {
       choices.value = newVal;
