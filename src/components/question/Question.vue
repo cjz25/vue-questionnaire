@@ -5,6 +5,11 @@
       </div>
       <div class="card-body">
         <div class="card-title row">
+          <div class="handle col-12">
+            <div :class="isFocus ? null : 'handle-icon-inactive'">
+              <font-awesome-icon :icon="['fas', 'grip-horizontal']"/>
+            </div>
+          </div>
           <div class="col-md-8 col-sm-12">
             <el-input
               :class="isFocus ? '' : 'read-input'"
@@ -219,5 +224,18 @@ export default defineComponent({
 }
 .el-textarea::v-deep(.el-textarea__inner) {
   resize: none;
+}
+/* css for handle */
+.handle {
+  cursor: move;
+  display: flex;
+  justify-content: center;
+  opacity: .3;
+}
+.handle-icon-inactive {
+  visibility: hidden;
+}
+.handle:hover > .handle-icon-inactive {
+  visibility: visible;
 }
 </style>

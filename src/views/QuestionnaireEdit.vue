@@ -31,16 +31,24 @@
       </div>
     </div>
     <div v-if="!isLoading && questions && questions.length">
-      <template v-for="(question, index) in questions" v-bind:key="question.id">
-        <div class="my-3">
-          <questionnaire-question
-            :data="question"
-            :isFocus="currentSelectedIndex === index"
-            @click="select(index)"
-            @edit-question="(...args) => debounceSaveQuestion(index, ...args)"
-            @delete-question="deleteQuestion(index)"/>
-        </div>
-      </template>
+      <draggable
+        v-model="questions"
+        v-bind="dragOptions"
+        handle=".handle"
+        item-key="id"
+        @update="onUpdate"
+      >
+        <template #item="{ element, index }">
+          <div class="my-3">
+            <questionnaire-question
+              :data="element"
+              :isFocus="currentSelectedIndex === index"
+              @click="select(index)"
+              @edit-question="(...args) => debounceSaveQuestion(index, ...args)"
+              @delete-question="deleteQuestion(index)"/>
+          </div>
+        </template>
+      </draggable>
     </div>
     <nav class="navbar fixed-bottom navbar-light mx-auto" style="background-color: #ffffff;">
       <el-tooltip effect="dark" content="Add question" placement="right">
@@ -60,6 +68,8 @@ import { useRouter } from 'vue-router'
 import QuestionnaireQuestion from '@/components/question/Question.vue'
 import { Question } from '../models/question.model'
 import { QuestionType } from '@/enums/question-type.enum'
+import { questionApiService } from '@/services/question-api.service'
+
 import useQuestionnaireFetch from '@/composables/useQuestionnaireFetch'
 import useQuestionnaireModify from '@/composables/useQuestionnaireModify'
 import useQuestionModify from '@/composables/useQuestionModify'
@@ -70,10 +80,13 @@ import { ElNotification } from 'element-plus'
 import _ from 'lodash'
 import { tap, mergeMap, filter, switchMap } from 'rxjs/operators'
 
+import draggable from 'vuedraggable'
+
 export default defineComponent({
   name: 'QuestionnaireEdit',
   components: {
-    QuestionnaireQuestion
+    QuestionnaireQuestion,
+    draggable
   },
   props: {
     id: {
@@ -194,6 +207,15 @@ export default defineComponent({
     this.questionnaireUnsubscribe$.next();
     this.questionnaireUnsubscribe$.complete();
   },
+  computed: {
+    dragOptions() {
+      return {
+        animation: 200,
+        disabled: false,
+        ghostClass: 'ghost'
+      };
+    }
+  },
   methods: {
     select(index: number) {
       this.currentSelectedIndex = index;
@@ -256,6 +278,24 @@ export default defineComponent({
           });
         }
       });
+    },
+    onUpdate(event: any) {
+      const newIndex = event.newIndex;
+      this.allChangesSaved = false;
+      questionApiService.adjustQuestionSequence(this.id, this.questions[newIndex].id, newIndex)
+        .subscribe({
+          next: response => {
+            this.currentSelectedIndex = event.newIndex;
+            this.allChangesSaved = true;
+          },
+          error: error => {
+            ElNotification({
+              type: 'error',
+              message: error.message,
+              position: 'bottom-left'
+            });
+          }
+        });
     }
   }
 })
@@ -304,5 +344,8 @@ export default defineComponent({
 .card-text::v-deep(.el-textarea__inner) {
   height: 21px;
   font-size: 14px;
+}
+.ghost {
+  opacity: 0;
 }
 </style>

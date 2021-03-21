@@ -18,6 +18,11 @@ class QuestionnApiService {
   deleteQuestion(questionnaireId: string, questionId: string) {
     return from(http.delete(questionnaireAPI + questionnaireId + questionAPI + questionId + '/'));
   }
+
+  adjustQuestionSequence(questionnaireId: string, questionId: string, newSeq: number) {
+    const payload = { new_seq: newSeq };
+    return from(http.put(questionnaireAPI + questionnaireId + questionAPI + questionId + '/sequence/', payload));
+  }
 }
 
 export const questionApiService = new QuestionnApiService();
