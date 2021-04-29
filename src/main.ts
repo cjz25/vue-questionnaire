@@ -28,7 +28,8 @@ import {
   ElTableColumn,
   ElDivider,
   ElTooltip,
-  ElDialog
+  ElDialog,
+  ElPagination
 } from 'element-plus'
 
 const components = [
@@ -41,7 +42,8 @@ const components = [
   ElTableColumn,
   ElDivider,
   ElTooltip,
-  ElDialog
+  ElDialog,
+  ElPagination
 ]
 
 const app = createApp(App).use(store).use(router).use(VueAxios, axios)

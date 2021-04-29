@@ -16,8 +16,11 @@
     <questionnaire-list-table
       class="my-3"
       :tableData="questionnaires"
+      :total="total"
       @edit-questionnaire="editQuestionnaire"
-      @delete-questionnaire="openDeleteQuestionnaireDialog"/>
+      @delete-questionnaire="openDeleteQuestionnaireDialog"
+      @change-current-page="handleCurrentChange"
+      @change-page-size="handleSizeChange"/>
     <el-dialog
       title="Delete Questionnaire"
       v-model="dialogVisible"
@@ -36,9 +39,11 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
 import { questionnaireApiService } from '@/services/questionnaire-api.service'
-import { Questionnaire } from '@/models/questionnaire.model'
 import QuestionnaireListTable from '@/components/question/QuestionnaireListTable.vue'
+import useQuestionnaireList from '@/composables/useQuestionnaireList'
+
 import { throwError } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
@@ -51,11 +56,18 @@ export default defineComponent({
   },
   setup() {
     const msg = ref('My Questionnaires');
-    const questionnaires = ref<Questionnaire[]>([]);
-    questionnaireApiService.getQuestionnaireList()
-      .subscribe(response => {
-        questionnaires.value = response.data;
-      });
+    const currentPage = ref(1);
+    const pageSize = ref(5);
+
+    const { questionnaires, total } = useQuestionnaireList(pageSize, currentPage);
+
+    const handleCurrentChange = (newCurrentPage: number) => {
+      currentPage.value = newCurrentPage;
+    };
+
+    const handleSizeChange = (newePageSize: number) => {
+      pageSize.value = newePageSize;
+    };
 
     const router = useRouter();
 
@@ -63,7 +75,9 @@ export default defineComponent({
       router.push({ path: `/${id}/edit` });
     };
 
-    return { msg, questionnaires, editQuestionnaire };
+    return {
+      msg, questionnaires, editQuestionnaire, total, currentPage, pageSize, handleCurrentChange, handleSizeChange
+    };
   },
   data() {
     return {
@@ -86,14 +100,15 @@ export default defineComponent({
                 message: 'Record deleted',
                 position: 'bottom-left'
               });
-              return questionnaireApiService.getQuestionnaireList();
+              return questionnaireApiService.getQuestionnaireList(this.pageSize, this.currentPage);
             } else {
               return throwError(response.statusText);
             }
           })
         ).subscribe({
           next: response => {
-            this.questionnaires = response.data;
+            this.questionnaires = response.data.results;
+            this.total = response.data.count;
           },
           error: error => {
             ElNotification({

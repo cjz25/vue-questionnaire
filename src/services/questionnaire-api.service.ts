@@ -6,8 +6,8 @@ import http from '@/config/api';
 const questionnaireAPI = '/questionnaires/';
 
 class QuestionnaireApiService {
-  getQuestionnaireList() {
-    return from(http.get(questionnaireAPI));
+  getQuestionnaireList(pageSize: number, page: number) {
+    return from(http.get(questionnaireAPI + `list?pageSize=${pageSize}&page=${page}`));
   }
 
   getQuestionnaire(id: string) {

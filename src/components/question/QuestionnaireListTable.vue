@@ -38,11 +38,24 @@
         </el-table-column>
       </el-table>
     </div>
+    <div class="mb-3 row justify-content-center">
+      <el-pagination
+        background
+        layout="sizes, prev, pager, next"
+        @size-change="$emit('changePageSize', pageSize)"
+        @current-change="$emit('changeCurrentPage', currentPage)"
+        v-model:currentPage="currentPage"
+        :page-sizes="[1, 5, 10]"
+        v-model:page-size="pageSize"
+        :total="total"
+        :hide-on-single-page="true">
+      </el-pagination>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent, PropType, ref } from 'vue'
 import { Questionnaire } from '@/models/questionnaire.model'
 
 export default defineComponent({
@@ -51,7 +64,19 @@ export default defineComponent({
     tableData: {
       type: Object as PropType<Questionnaire[]>,
       required: true
+    },
+    total: {
+      type: Number,
+      required: true
     }
+  },
+  setup() {
+    const currentPage = ref(1);
+    const pageSize = ref(5);
+
+    return {
+      currentPage, pageSize
+    };
   },
   methods: {
     toLocaleDateString(row: any, column: any) {
